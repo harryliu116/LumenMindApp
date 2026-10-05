@@ -5,57 +5,62 @@
 // gestures. You can also use WidgetTester to find child widgets in the widget
 // tree, read text, and verify that the values of widget properties are correct.
 
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
-import 'package:image/image.dart' as img;
 
 import 'package:lumen_mind/light_chaser.dart';
 import 'package:lumen_mind/tyndall_app.dart';
+import 'package:lumen_mind/tyndall_detector_client.dart';
 
 void main() {
-  testWidgets('shows LumenMind sessions and the TynsAI workflow', (tester) async {
+  testWidgets('shows LumenMind sessions and the TynsAI workflow', (
+    tester,
+  ) async {
     await tester.pumpWidget(const LumenMindApp());
     expect(find.text('LUMENMIND'), findsOneWidget);
     expect(find.text('TynsAI'), findsNWidgets(2));
-    expect(find.text('Light Chaser'), findsOneWidget);
-    expect(find.text('Add a Tyndall or light-beam image'), findsOneWidget);
-    expect(find.text('Water'), findsOneWidget);
-    expect(find.text('Air'), findsOneWidget);
-    expect(find.text('NOT CALIBRATED'), findsOneWidget);
-  });
-
-  test('computes image features from an encoded image', () {
-    final image = img.Image(width: 4, height: 4);
-    for (var y = 0; y < image.height; y++) {
-      for (var x = 0; x < image.width; x++) {
-        final value = (x + y).isEven ? 0 : 255;
-        image.setPixelRgb(x, y, value, value, value);
-      }
-    }
-    final result = OpticalAnalysis.fromBytes(img.encodePng(image));
-    expect(result.width, 4);
-    expect(result.height, 4);
-    expect(result.scatterIndex, greaterThan(0));
-    expect(result.scatterIndex, lessThanOrEqualTo(100));
-  });
-
-  test('maps the blank and standard to their known concentrations', () {
+    expect(find.text('LightChaser'), findsOneWidget);
     expect(
-      estimateConcentration(
-        currentIndex: 15,
-        blankIndex: 5,
-        standardIndex: 25,
-        standardConcentration: 40,
+      find.text(
+        'Detecting mass concentration from water and air through Tyndall Effect.',
       ),
-      20,
+      findsOneWidget,
     );
+    expect(find.text('Upload a Tyndall or light-beam image'), findsOneWidget);
+    expect(find.text('EXISTING C++ DETECTOR'), findsNothing);
+    expect(find.text('EXISTING MODEL'), findsNothing);
     expect(
-      estimateConcentration(
-        currentIndex: 10,
-        blankIndex: 5,
-        standardIndex: 5,
-        standardConcentration: 40,
+      find.textContaining('Detector estimates may not be accurate.'),
+      findsOneWidget,
+    );
+    expect(find.text('Detector output'), findsOneWidget);
+
+    await tester.tap(find.text('LightChaser'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Weather signals point to places worth exploring.'),
+      findsOneWidget,
+    );
+    expect(find.text('LightChaser'), findsNWidgets(2));
+    expect(find.text('Chase the light.'), findsNothing);
+  });
+
+  test('preserves the detector output text exactly', () {
+    const output =
+        '\nPrediction Result\n'
+        'Predicted Mass Percentage: 0.58535%\n'
+        'Image-only prediction (no sensor data)\n';
+    expect(parseDetectorOutput(jsonEncode({'output': output})), output);
+  });
+
+  test('surfaces detector service errors', () {
+    expect(
+      () => parseDetectorOutput(
+        '{"error":"Detector unavailable."}',
+        statusCode: 500,
       ),
-      isNull,
+      throwsA(isA<DetectorApiException>()),
     );
   });
 

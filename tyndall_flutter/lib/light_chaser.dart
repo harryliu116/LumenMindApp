@@ -60,7 +60,9 @@ class _LightChaserSessionState extends State<LightChaserSession> {
       }
       if (permission == LocationPermission.denied ||
           permission == LocationPermission.deniedForever) {
-        throw Exception('Location permission is required to find nearby anchors.');
+        throw Exception(
+          'Location permission is required to find nearby anchors.',
+        );
       }
       final position = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
@@ -83,7 +85,11 @@ class _LightChaserSessionState extends State<LightChaserSession> {
         _selectedAnchor = anchors.isEmpty ? null : anchors.first;
       });
     } catch (error) {
-      if (mounted) setState(() => _error = error.toString().replaceFirst('Exception: ', ''));
+      if (mounted) {
+        setState(
+          () => _error = error.toString().replaceFirst('Exception: ', ''),
+        );
+      }
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -111,17 +117,20 @@ class _LightChaserSessionState extends State<LightChaserSession> {
     });
     _updateChasePosition(position);
     if (_found) return;
-    _positionSubscription = Geolocator.getPositionStream(
-      locationSettings: const LocationSettings(
-        accuracy: LocationAccuracy.high,
-        distanceFilter: 8,
-      ),
-    ).listen(
-      _updateChasePosition,
-      onError: (Object error) {
-        if (mounted) setState(() => _error = 'Location tracking stopped: $error');
-      },
-    );
+    _positionSubscription =
+        Geolocator.getPositionStream(
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.high,
+            distanceFilter: 8,
+          ),
+        ).listen(
+          _updateChasePosition,
+          onError: (Object error) {
+            if (mounted) {
+              setState(() => _error = 'Location tracking stopped: $error');
+            }
+          },
+        );
   }
 
   void _updateChasePosition(Position position) {
@@ -173,7 +182,12 @@ class _LightChaserSessionState extends State<LightChaserSession> {
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 1240),
                 child: SingleChildScrollView(
-                  padding: EdgeInsets.fromLTRB(wide ? 32 : 18, 22, wide ? 32 : 18, 30),
+                  padding: EdgeInsets.fromLTRB(
+                    wide ? 32 : 18,
+                    22,
+                    wide ? 32 : 18,
+                    30,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -209,140 +223,163 @@ class _LightChaserSessionState extends State<LightChaserSession> {
   }
 
   Widget _header() => Row(
-        children: [
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(color: _gold, borderRadius: BorderRadius.circular(10)),
-            child: const Icon(Icons.light_mode, color: _ink, size: 23),
-          ),
-          const SizedBox(width: 11),
-          const Text(
-            'LUMENMIND',
-            style: TextStyle(color: _ink, fontSize: 13, fontWeight: FontWeight.w800, letterSpacing: 1.5),
-          ),
-          const Spacer(),
-          const Icon(Icons.circle, color: _gold, size: 8),
-          const SizedBox(width: 7),
-          const Text(
-            'LIGHT CHASER',
-            style: TextStyle(color: _muted, fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 1),
-          ),
-        ],
-      );
+    children: [
+      Container(
+        width: 38,
+        height: 38,
+        decoration: BoxDecoration(
+          color: _gold,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: const Icon(Icons.light_mode, color: _ink, size: 23),
+      ),
+      const SizedBox(width: 11),
+      const Text(
+        'LUMENMIND',
+        style: TextStyle(
+          color: _ink,
+          fontSize: 13,
+          fontWeight: FontWeight.w800,
+          letterSpacing: 1.5,
+        ),
+      ),
+      const Spacer(),
+      const Icon(Icons.circle, color: _gold, size: 8),
+      const SizedBox(width: 7),
+      const Text(
+        'LIGHTCHASER',
+        style: TextStyle(
+          color: _muted,
+          fontSize: 10,
+          fontWeight: FontWeight.w800,
+          letterSpacing: 1,
+        ),
+      ),
+    ],
+  );
 
   Widget _title() => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'FIELD SESSION / 02',
-            style: TextStyle(color: _muted, fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 1.4),
-          ),
-          const SizedBox(height: 6),
-          const Text(
-            'Chase the light.',
-            style: TextStyle(color: _ink, fontFamily: 'Georgia', fontSize: 36, height: 1.08),
-          ),
-          const SizedBox(height: 7),
-          Text(
-            'Weather signals point to places worth exploring.',
-            style: TextStyle(color: _muted, fontSize: 13),
-          ),
-        ],
-      );
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      const Text(
+        'Weather signals point to places worth exploring.',
+        style: TextStyle(
+          color: _muted,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      const SizedBox(height: 6),
+      const Text(
+        'LightChaser',
+        style: TextStyle(
+          color: _ink,
+          fontFamily: 'Georgia',
+          fontSize: 36,
+          height: 1.08,
+        ),
+      ),
+    ],
+  );
 
   Widget _mapPanel() => Container(
-        height: 470,
-        clipBehavior: Clip.antiAlias,
-        decoration: BoxDecoration(
-          color: const Color(0xFFE7E4D7),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: _line),
-        ),
-        child: Stack(
+    height: 470,
+    clipBehavior: Clip.antiAlias,
+    decoration: BoxDecoration(
+      color: const Color(0xFFE7E4D7),
+      borderRadius: BorderRadius.circular(10),
+      border: Border.all(color: _line),
+    ),
+    child: Stack(
+      children: [
+        FlutterMap(
+          mapController: _mapController,
+          options: MapOptions(
+            initialCenter: _center ?? const LatLng(20, 0),
+            initialZoom: _center == null ? 2 : 12,
+            minZoom: 2,
+            maxZoom: 18,
+          ),
           children: [
-            FlutterMap(
-              mapController: _mapController,
-              options: MapOptions(
-                initialCenter: _center ?? const LatLng(20, 0),
-                initialZoom: _center == null ? 2 : 12,
-                minZoom: 2,
-                maxZoom: 18,
-              ),
-              children: [
-                TileLayer(
-                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                  userAgentPackageName: 'com.lumenmind.app',
-                  maxNativeZoom: 19,
-                ),
-                MarkerLayer(markers: _mapMarkers()),
-                RichAttributionWidget(
-                  showFlutterMapAttribution: false,
-                  attributions: [
-                    TextSourceAttribution(
-                      'OpenStreetMap contributors',
-                      onTap: () => launchUrl(Uri.https('www.openstreetmap.org', '/copyright')),
-                    ),
-                  ],
+            TileLayer(
+              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+              userAgentPackageName: 'com.lumenmind.app',
+              maxNativeZoom: 19,
+            ),
+            MarkerLayer(markers: _mapMarkers()),
+            RichAttributionWidget(
+              showFlutterMapAttribution: false,
+              attributions: [
+                TextSourceAttribution(
+                  'OpenStreetMap contributors',
+                  onTap: () => launchUrl(
+                    Uri.https('www.openstreetmap.org', '/copyright'),
+                  ),
                 ),
               ],
             ),
-            if (_center == null && !_loading)
-              Positioned.fill(
-                child: IgnorePointer(
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.48)),
-                    child: const Center(
-                      child: Text(
-                        'Find your location to scan nearby conditions',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: _ink, fontWeight: FontWeight.w700),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            Positioned(
-              right: 12,
-              top: 12,
-              child: FloatingActionButton.small(
-                heroTag: 'scan-location',
-                tooltip: _loading ? 'Scanning nearby conditions' : 'Find nearby anchors',
-                onPressed: _loading ? null : _scanNearbyConditions,
-                backgroundColor: _gold,
-                foregroundColor: _ink,
-                child: _loading
-                    ? const SizedBox.square(
-                        dimension: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.my_location),
-              ),
-            ),
-            if (_chasing || _found)
-              Positioned(
-                left: 12,
-                top: 12,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: _found ? _gold : _ink,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    _found ? 'LIGHT FOUND' : 'CHASE ACTIVE',
-                    style: TextStyle(
-                      color: _found ? _ink : Colors.white,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 0.8,
-                    ),
-                  ),
-                ),
-              ),
           ],
         ),
-      );
+        if (_center == null && !_loading)
+          Positioned.fill(
+            child: IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.48),
+                ),
+                child: const Center(
+                  child: Text(
+                    'Find your location to scan nearby conditions',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: _ink, fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        Positioned(
+          right: 12,
+          top: 12,
+          child: FloatingActionButton.small(
+            heroTag: 'scan-location',
+            tooltip: _loading
+                ? 'Scanning nearby conditions'
+                : 'Find nearby anchors',
+            onPressed: _loading ? null : _scanNearbyConditions,
+            backgroundColor: _gold,
+            foregroundColor: _ink,
+            child: _loading
+                ? const SizedBox.square(
+                    dimension: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.my_location),
+          ),
+        ),
+        if (_chasing || _found)
+          Positioned(
+            left: 12,
+            top: 12,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: _found ? _gold : _ink,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                _found ? 'LIGHT FOUND' : 'CHASE ACTIVE',
+                style: TextStyle(
+                  color: _found ? _ink : Colors.white,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.8,
+                ),
+              ),
+            ),
+          ),
+      ],
+    ),
+  );
 
   List<Marker> _mapMarkers() {
     final markers = _anchors.map((anchor) {
@@ -363,18 +400,39 @@ class _LightChaserSessionState extends State<LightChaserSession> {
                 decoration: BoxDecoration(
                   color: found ? _ink : _gold,
                   shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: selected ? 3 : 2),
+                  border: Border.all(
+                    color: Colors.white,
+                    width: selected ? 3 : 2,
+                  ),
                   boxShadow: [
-                    BoxShadow(color: _ink.withValues(alpha: 0.2), blurRadius: 9, offset: const Offset(0, 3)),
+                    BoxShadow(
+                      color: _ink.withValues(alpha: 0.2),
+                      blurRadius: 9,
+                      offset: const Offset(0, 3),
+                    ),
                   ],
                 ),
-                child: Icon(found ? Icons.check : Icons.light_mode, color: found ? _gold : _ink, size: 19),
+                child: Icon(
+                  found ? Icons.check : Icons.light_mode,
+                  color: found ? _gold : _ink,
+                  size: 19,
+                ),
               ),
               const SizedBox(height: 2),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(4)),
-                child: Text('${anchor.score.round()}%', style: const TextStyle(color: _ink, fontSize: 9, fontWeight: FontWeight.w800)),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  '${anchor.score.round()}%',
+                  style: const TextStyle(
+                    color: _ink,
+                    fontSize: 9,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
               ),
             ],
           ),
@@ -393,7 +451,9 @@ class _LightChaserSessionState extends State<LightChaserSession> {
               color: const Color(0xFF326DA8),
               shape: BoxShape.circle,
               border: Border.all(color: Colors.white, width: 3),
-              boxShadow: const [BoxShadow(color: Color(0x33000000), blurRadius: 6)],
+              boxShadow: const [
+                BoxShadow(color: Color(0x33000000), blurRadius: 6),
+              ],
             ),
           ),
         ),
@@ -418,7 +478,12 @@ class _LightChaserSessionState extends State<LightChaserSession> {
                   ),
                   Text(
                     _anchors.isEmpty ? 'NO SCAN' : '${_anchors.length} FOUND',
-                    style: const TextStyle(color: _muted, fontSize: 9, fontWeight: FontWeight.w800, letterSpacing: 0.8),
+                    style: const TextStyle(
+                      color: _muted,
+                      fontSize: 9,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.8,
+                    ),
                   ),
                 ],
               ),
@@ -430,7 +495,8 @@ class _LightChaserSessionState extends State<LightChaserSession> {
               if (_anchors.isEmpty)
                 const _Notice(
                   icon: Icons.wb_cloudy_outlined,
-                  text: 'Scan your area to compare humidity, dew-point proximity, and visibility.',
+                  text:
+                      'Scan your area to compare humidity, dew-point proximity, and visibility.',
                 )
               else ...[
                 _weatherStats(),
@@ -444,23 +510,31 @@ class _LightChaserSessionState extends State<LightChaserSession> {
                   onPressed: _loading
                       ? null
                       : selected == null
-                          ? _scanNearbyConditions
-                          : _chasing
-                              ? _stopChase
-                              : _startChase,
-                  icon: Icon(_chasing ? Icons.stop_circle_outlined : Icons.directions_walk),
-                  label: Text(_loading
-                      ? 'Scanning nearby conditions...'
+                      ? _scanNearbyConditions
                       : _chasing
-                          ? 'Stop chase'
-                          : selected == null
-                              ? 'Find nearby anchors'
-                              : 'Chase this anchor'),
+                      ? _stopChase
+                      : _startChase,
+                  icon: Icon(
+                    _chasing
+                        ? Icons.stop_circle_outlined
+                        : Icons.directions_walk,
+                  ),
+                  label: Text(
+                    _loading
+                        ? 'Scanning nearby conditions...'
+                        : _chasing
+                        ? 'Stop chase'
+                        : selected == null
+                        ? 'Find nearby anchors'
+                        : 'Chase this anchor',
+                  ),
                   style: FilledButton.styleFrom(
                     backgroundColor: _gold,
                     foregroundColor: _ink,
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(7),
+                    ),
                   ),
                 ),
               ),
@@ -475,7 +549,9 @@ class _LightChaserSessionState extends State<LightChaserSession> {
                     style: OutlinedButton.styleFrom(
                       foregroundColor: _ink,
                       side: const BorderSide(color: _line),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(7)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(7),
+                      ),
                     ),
                   ),
                 ),
@@ -508,73 +584,114 @@ class _LightChaserSessionState extends State<LightChaserSession> {
     if (anchor == null) return const SizedBox.shrink();
     return Row(
       children: [
-        Expanded(child: _WeatherStat(label: 'AIR TEMP', value: '${anchor.temperature.round()}°C')),
+        Expanded(
+          child: _WeatherStat(
+            label: 'AIR TEMP',
+            value: '${anchor.temperature.round()}°C',
+          ),
+        ),
         const SizedBox(width: 7),
-        Expanded(child: _WeatherStat(label: 'HUMIDITY', value: '${anchor.humidity.round()}%')),
+        Expanded(
+          child: _WeatherStat(
+            label: 'HUMIDITY',
+            value: '${anchor.humidity.round()}%',
+          ),
+        ),
         const SizedBox(width: 7),
-        Expanded(child: _WeatherStat(label: 'VISIBILITY', value: _formatVisibility(anchor.visibility))),
+        Expanded(
+          child: _WeatherStat(
+            label: 'VISIBILITY',
+            value: _formatVisibility(anchor.visibility),
+          ),
+        ),
       ],
     );
   }
 
   Widget _selectedAnchorDetails(WeatherAnchor anchor) => Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(color: _paper, borderRadius: BorderRadius.circular(8)),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    padding: const EdgeInsets.all(12),
+    decoration: BoxDecoration(
+      color: _paper,
+      borderRadius: BorderRadius.circular(8),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    'Anchor ${_anchors.indexOf(anchor) + 1}',
-                    style: const TextStyle(color: _ink, fontWeight: FontWeight.w700),
-                  ),
+            Expanded(
+              child: Text(
+                'Anchor ${_anchors.indexOf(anchor) + 1}',
+                style: const TextStyle(
+                  color: _ink,
+                  fontWeight: FontWeight.w700,
                 ),
-                Text(
-                  '${anchor.score.round()}% signal',
-                  style: const TextStyle(color: _ink, fontSize: 11, fontWeight: FontWeight.w800),
-                ),
-              ],
-            ),
-            const SizedBox(height: 5),
-            Text(
-              'Dew-point gap ${anchor.dewPointGap.toStringAsFixed(1)}°C · ${anchor.score >= 65 ? 'Elevated conditions' : 'Some conditions'}',
-              style: const TextStyle(color: _muted, fontSize: 11),
-            ),
-            if (_distanceMeters != null) ...[
-              const SizedBox(height: 6),
-              Text(
-                _found
-                    ? 'Anchor reached. Look for a visible beam in a safe public area.'
-                    : 'Distance ${_formatDistance(_distanceMeters!)} · approach within 100 m to check in.',
-                style: TextStyle(color: _found ? const Color(0xFF6A5514) : _muted, fontSize: 11, height: 1.4),
               ),
-            ],
+            ),
+            Text(
+              '${anchor.score.round()}% signal',
+              style: const TextStyle(
+                color: _ink,
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
           ],
         ),
-      );
-
-  Widget _attribution() => Wrap(
-        spacing: 6,
-        runSpacing: 4,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        children: [
-          const Icon(Icons.public, size: 15, color: _muted),
-          const Text('Map data © OpenStreetMap contributors', style: TextStyle(color: _muted, fontSize: 10)),
-          const Text('·', style: TextStyle(color: _muted, fontSize: 10)),
-          InkWell(
-            onTap: () => launchUrl(Uri.https('open-meteo.com', '/')),
-            child: const Text('Weather data by Open-Meteo', style: TextStyle(color: _muted, fontSize: 10, decoration: TextDecoration.underline)),
+        const SizedBox(height: 5),
+        Text(
+          'Dew-point gap ${anchor.dewPointGap.toStringAsFixed(1)}°C · ${anchor.score >= 65 ? 'Elevated conditions' : 'Some conditions'}',
+          style: const TextStyle(color: _muted, fontSize: 11),
+        ),
+        if (_distanceMeters != null) ...[
+          const SizedBox(height: 6),
+          Text(
+            _found
+                ? 'Anchor reached. Look for a visible beam in a safe public area.'
+                : 'Distance ${_formatDistance(_distanceMeters!)} · approach within 100 m to check in.',
+            style: TextStyle(
+              color: _found ? const Color(0xFF6A5514) : _muted,
+              fontSize: 11,
+              height: 1.4,
+            ),
           ),
         ],
-      );
+      ],
+    ),
+  );
 
-  String _formatVisibility(double meters) =>
-      meters >= 1000 ? '${(meters / 1000).toStringAsFixed(1)} km' : '${meters.round()} m';
+  Widget _attribution() => Wrap(
+    spacing: 6,
+    runSpacing: 4,
+    crossAxisAlignment: WrapCrossAlignment.center,
+    children: [
+      const Icon(Icons.public, size: 15, color: _muted),
+      const Text(
+        'Map data © OpenStreetMap contributors',
+        style: TextStyle(color: _muted, fontSize: 10),
+      ),
+      const Text('·', style: TextStyle(color: _muted, fontSize: 10)),
+      InkWell(
+        onTap: () => launchUrl(Uri.https('open-meteo.com', '/')),
+        child: const Text(
+          'Weather data by Open-Meteo',
+          style: TextStyle(
+            color: _muted,
+            fontSize: 10,
+            decoration: TextDecoration.underline,
+          ),
+        ),
+      ),
+    ],
+  );
 
-  String _formatDistance(double meters) =>
-      meters >= 1000 ? '${(meters / 1000).toStringAsFixed(1)} km' : '${meters.round()} m';
+  String _formatVisibility(double meters) => meters >= 1000
+      ? '${(meters / 1000).toStringAsFixed(1)} km'
+      : '${meters.round()} m';
+
+  String _formatDistance(double meters) => meters >= 1000
+      ? '${(meters / 1000).toStringAsFixed(1)} km'
+      : '${meters.round()} m';
 
   void _stopChase() {
     _positionSubscription?.cancel();
@@ -617,28 +734,41 @@ class WeatherAnchorService {
       [1, 0],
       [1, 1],
     ];
-    final longitudeScale = math.cos(center.latitude * math.pi / 180).abs().clamp(0.2, 1.0);
+    final longitudeScale = math
+        .cos(center.latitude * math.pi / 180)
+        .abs()
+        .clamp(0.2, 1.0);
     final points = offsets.map((offset) {
-      final latitude = (center.latitude + offset[0] * 0.025).clamp(-85.0, 85.0).toDouble();
+      final latitude = (center.latitude + offset[0] * 0.025)
+          .clamp(-85.0, 85.0)
+          .toDouble();
       final longitude = (center.longitude + offset[1] * 0.025 / longitudeScale)
           .clamp(-180.0, 180.0)
           .toDouble();
       return LatLng(latitude, longitude);
     }).toList();
     final uri = Uri.https('api.open-meteo.com', '/v1/forecast', {
-      'latitude': points.map((point) => point.latitude.toStringAsFixed(4)).join(','),
-      'longitude': points.map((point) => point.longitude.toStringAsFixed(4)).join(','),
+      'latitude': points
+          .map((point) => point.latitude.toStringAsFixed(4))
+          .join(','),
+      'longitude': points
+          .map((point) => point.longitude.toStringAsFixed(4))
+          .join(','),
       'current': 'temperature_2m,relative_humidity_2m,dew_point_2m,visibility',
       'timezone': 'auto',
     });
     final response = await http.get(uri).timeout(const Duration(seconds: 20));
     if (response.statusCode != 200) {
-      throw Exception('Weather service returned status ${response.statusCode}.');
+      throw Exception(
+        'Weather service returned status ${response.statusCode}.',
+      );
     }
     final payload = jsonDecode(response.body);
     final locations = payload is List ? payload : [payload];
     if (locations.length != points.length) {
-      throw const FormatException('Weather service returned incomplete nearby data.');
+      throw const FormatException(
+        'Weather service returned incomplete nearby data.',
+      );
     }
     final anchors = <WeatherAnchor>[];
     for (var index = 0; index < points.length; index++) {
@@ -680,8 +810,12 @@ double weatherOpportunityScore({
   final humiditySignal = (humidity / 100).clamp(0.0, 1.0).toDouble();
   final dewGap = (temperature - dewPoint).clamp(0.0, 10.0).toDouble();
   final dewPointSignal = 1 - dewGap / 10;
-  final visibilitySignal = 1 - (visibility.clamp(0.0, 8000.0).toDouble() / 8000);
-  return (humiditySignal * 0.5 + dewPointSignal * 0.35 + visibilitySignal * 0.15) * 100;
+  final visibilitySignal =
+      1 - (visibility.clamp(0.0, 8000.0).toDouble() / 8000);
+  return (humiditySignal * 0.5 +
+          dewPointSignal * 0.35 +
+          visibilitySignal * 0.15) *
+      100;
 }
 
 class _Panel extends StatelessWidget {
@@ -690,15 +824,15 @@ class _Panel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: _line),
-        ),
-        child: child,
-      );
+    width: double.infinity,
+    padding: const EdgeInsets.all(16),
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(10),
+      border: Border.all(color: _line),
+    ),
+    child: child,
+  );
 }
 
 class _PanelHeading extends StatelessWidget {
@@ -708,12 +842,28 @@ class _PanelHeading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Row(
-        children: [
-          Text(number, style: const TextStyle(color: _gold, fontSize: 11, fontWeight: FontWeight.w800)),
-          const SizedBox(width: 9),
-          Expanded(child: Text(title, style: const TextStyle(color: _ink, fontSize: 15, fontWeight: FontWeight.w700))),
-        ],
-      );
+    children: [
+      Text(
+        number,
+        style: const TextStyle(
+          color: _gold,
+          fontSize: 11,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+      const SizedBox(width: 9),
+      Expanded(
+        child: Text(
+          title,
+          style: const TextStyle(
+            color: _ink,
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
+    ],
+  );
 }
 
 class _WeatherStat extends StatelessWidget {
@@ -723,17 +873,38 @@ class _WeatherStat extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-        decoration: BoxDecoration(color: _paper, borderRadius: BorderRadius.circular(7)),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: _muted, fontSize: 8, fontWeight: FontWeight.w800, letterSpacing: 0.4)),
-            const SizedBox(height: 4),
-            Text(value, maxLines: 1, style: const TextStyle(color: _ink, fontSize: 16, fontWeight: FontWeight.w700)),
-          ],
+    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+    decoration: BoxDecoration(
+      color: _paper,
+      borderRadius: BorderRadius.circular(7),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(
+            color: _muted,
+            fontSize: 8,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 0.4,
+          ),
         ),
-      );
+        const SizedBox(height: 4),
+        Text(
+          value,
+          maxLines: 1,
+          style: const TextStyle(
+            color: _ink,
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
+    ),
+  );
 }
 
 class _Notice extends StatelessWidget {
@@ -743,16 +914,24 @@ class _Notice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(13),
-        decoration: BoxDecoration(color: _paper, borderRadius: BorderRadius.circular(8)),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(icon, size: 18, color: _muted),
-            const SizedBox(width: 10),
-            Expanded(child: Text(text, style: const TextStyle(color: _muted, fontSize: 12, height: 1.45))),
-          ],
+    width: double.infinity,
+    padding: const EdgeInsets.all(13),
+    decoration: BoxDecoration(
+      color: _paper,
+      borderRadius: BorderRadius.circular(8),
+    ),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 18, color: _muted),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            text,
+            style: const TextStyle(color: _muted, fontSize: 12, height: 1.45),
+          ),
         ),
-      );
+      ],
+    ),
+  );
 }
