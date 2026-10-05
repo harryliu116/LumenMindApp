@@ -16,6 +16,11 @@ MODEL_PATH = WORKSPACE_DIR / 'my_model.xml'
 BUILD_DIR = APP_DIR / 'backend' / '.build'
 DETECTOR_PATH = BUILD_DIR / 'tyndall_detector'
 MAX_IMAGE_BYTES = 25 * 1024 * 1024
+ALLOWED_ORIGINS = {
+    origin.strip()
+    for origin in os.environ.get('TYNSAI_ALLOWED_ORIGINS', '*').split(',')
+    if origin.strip()
+}
 
 
 def opencv_prefix():
@@ -74,19 +79,33 @@ class DetectorHandler(BaseHTTPRequestHandler):
         self.send_response(status)
         self.send_header('Content-Type', 'application/json; charset=utf-8')
         self.send_header('Content-Length', str(len(data)))
-        self.send_header('Access-Control-Allow-Origin', '*')
-        self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-        self.send_header('Access-Control-Allow-Headers', 'Content-Type, X-Filename')
+        self._send_cors_headers()
         self.end_headers()
         self.wfile.write(data)
 
-    def do_OPTIONS(self):
-        self.send_response(204)
-        self.send_header('Access-Control-Allow-Origin', '*')
+    def _send_cors_headers(self):
+        origin = self.headers.get('Origin')
+        if '*' in ALLOWED_ORIGINS:
+            self.send_header('Access-Control-Allow-Origin', '*')
+        elif origin in ALLOWED_ORIGINS:
+            self.send_header('Access-Control-Allow-Origin', origin)
+            self.send_header('Vary', 'Origin')
         self.send_header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
         self.send_header('Access-Control-Allow-Headers', 'Content-Type, X-Filename')
+
+    def _send_options(self):
+        origin = self.headers.get('Origin')
+        if '*' not in ALLOWED_ORIGINS and origin not in ALLOWED_ORIGINS:
+            self.send_response(403)
+            self.end_headers()
+            return
+        self.send_response(204)
+        self._send_cors_headers()
         self.send_header('Access-Control-Max-Age', '600')
         self.end_headers()
+
+    def do_OPTIONS(self):
+        self._send_options()
 
     def do_GET(self):
         if self.path == '/health':
@@ -151,8 +170,12 @@ class DetectorHandler(BaseHTTPRequestHandler):
 
 def main():
     build_detector()
-    server = ThreadingHTTPServer(('127.0.0.1', int(os.environ.get('TYNSAI_PORT', '8765'))), DetectorHandler)
-    print(f'TynsAI detector API is ready at http://127.0.0.1:{server.server_port}')
+    host = os.environ.get('TYNSAI_HOST', '127.0.0.1')
+    port = int(os.environ.get('TYNSAI_PORT', '8765'))
+    server = ThreadingHTTPServer((host, port), DetectorHandler)
+    print(f'TynsAI detector API is ready at http://{host}:{server.server_port}')
+    if host not in {'127.0.0.1', 'localhost'} and ALLOWED_ORIGINS == {'*'}:
+        print('Warning: set TYNSAI_ALLOWED_ORIGINS to your published app origin.')
     print(f'Using source: {SOURCE_PATH}')
     print(f'Using model: {MODEL_PATH}')
     try:

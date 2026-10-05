@@ -64,6 +64,15 @@ void main() {
     );
   });
 
+  test('explains how to configure a published detector endpoint', () {
+    final message = detectorApiConnectionMessage(
+      'http://127.0.0.1:8765/predict',
+    );
+    expect(message, contains('public HTTPS /predict endpoint'));
+    expect(message, contains("each visitor’s own device"));
+    expect(message, contains('CORS'));
+  });
+
   test('ranks humid near-saturation conditions above dry clear conditions', () {
     final humid = weatherOpportunityScore(
       humidity: 92,

@@ -33,6 +33,27 @@ is stored in `backend/.build/`; the existing `tyndall` binary is not modified.
 The original detector's model and prediction behavior are unchanged. Its
 accuracy and limitations are those of the existing model.
 
+## Publish TynsAI on the web
+
+The detector is native C++ and must run on a server that has the detector source,
+`my_model.xml`, a C++ compiler, and OpenCV installed. A published Flutter Web
+site cannot execute the detector on its hosting server automatically, and
+`127.0.0.1` in a browser means the visitor's own computer.
+
+Run the detector API on a reachable server behind an HTTPS reverse proxy. Set
+`TYNSAI_HOST=0.0.0.0` and restrict browser access to the deployed app origin, for
+example `TYNSAI_ALLOWED_ORIGINS=https://app.example.com`. Then build Flutter Web
+with the public API URL embedded:
+
+```sh
+flutter build web --release \
+	--dart-define=TYNSAI_API_URL=https://api.example.com/predict
+```
+
+Deploy `build/web` after the build. The browser page and API must both use HTTPS;
+the API must allow the page's origin through CORS. Keep `TYNSAI_API_URL` pointed
+at the public HTTPS endpoint, not `127.0.0.1`.
+
 ## Light Chaser data
 
 The map uses OpenStreetMap tiles. Open-Meteo supplies current temperature,
