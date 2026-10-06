@@ -132,7 +132,7 @@ class _TynsAiSessionState extends State<TynsAiSession> {
     } catch (error) {
       if (!mounted) return;
       setState(
-        () => _error = error is DetectorApiException
+        () => _error = error is DetectorException
             ? error.message
           : 'Prediction failed: $error',
       );

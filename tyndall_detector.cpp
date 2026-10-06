@@ -1,4 +1,10 @@
+#ifdef TYNDALL_WASM
+#include <opencv2/core.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/imgproc.hpp>
+#else
 #include <opencv2/opencv.hpp>
+#endif
 #include <opencv2/ml.hpp>
 #include <iostream>
 #include <vector>
@@ -268,6 +274,7 @@ public:
         return model->predict(features);
     }
     
+#ifndef TYNDALL_WASM
     void visualize(const Mat& image, float predictedPercentage, 
                    float actualPercentage = -1) {
         visualize(image, predictedPercentage, 0, 0, 0, actualPercentage);
@@ -335,6 +342,7 @@ public:
         imshow("Tyndall Effect - Concentration Predictor", display);
         waitKey(0);
     }
+#endif
     
     void saveModel(const string& filename) {
         model->save(filename);
@@ -446,6 +454,7 @@ public:
     }
 };
 
+#ifndef TYNDALL_WASM
 int main(int argc, char** argv) {
     if(argc < 2) {
         cout << "\nTYNDALL EFFECT CONCENTRATION PREDICTOR\n" << endl;
@@ -565,3 +574,4 @@ int main(int argc, char** argv) {
     
     return 0;
 }
+#endif

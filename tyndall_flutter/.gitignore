@@ -44,5 +44,3 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-# Local build of the existing C++ detector
-/backend/.build/

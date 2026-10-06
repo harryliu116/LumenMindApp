@@ -9,50 +9,48 @@ LumenMind contains two field sessions:
 
 ## Run
 
-Run the bridge and Flutter together:
+Build the embedded TynsAI WebAssembly module once, then launch Flutter:
 
 ```sh
 cd "/Users/harryliu/Desktop/LumenMind App/tyndall_flutter"
+sh tool/build_tynsai_wasm.sh
 sh run_lumenmind.sh
 ```
 
-The bridge compiles the workspace-root `tyndall_detector.cpp` against the
-installed Homebrew OpenCV, uses the workspace-root `my_model.xml`, and listens
-on `127.0.0.1:8765`. Stop both processes with `Ctrl+C`.
+The WASM build needs Emscripten, CMake, Git, and network access to fetch OpenCV
+4.12. It compiles the original `tyndall_detector.cpp` with OpenCV's `core`,
+`imgproc`, `imgcodecs`, and `ml` modules and packages the workspace-root
+`my_model.xml` into the browser module. The `tyndall_detector.cpp` `predict()`
+implementation is unchanged; only its GUI and command-line entry points are
+excluded from the Web build. After the build, predictions run locally in the
+browser with no detector API or CORS configuration.
 
 The app can also be run as a macOS desktop app with `flutter run -d macos` when
 Xcode and CocoaPods are installed. Android and iOS targets are included. Web
 geolocation requires a secure context (HTTPS or localhost) and browser permission.
 
-TynsAI passes the uploaded image through the existing `predict_csv` command,
-which calls the same C++ `predict()` method with zero sensor readings as the
-image-only CLI path. This avoids the original GUI window while preserving the
-model, features, and `Prediction Result` text. The generated native executable
-is stored in `backend/.build/`; the existing `tyndall` binary is not modified.
+TynsAI passes uploaded image bytes directly to the WASM detector, which uses
+OpenCV `imdecode`, the existing 800-pixel resize behavior, and the original
+image-only `predict()` method. It returns the original prediction text format.
 
 The original detector's model and prediction behavior are unchanged. Its
 accuracy and limitations are those of the existing model.
 
-## Publish TynsAI on the web
+## Publish to Vercel
 
-The detector is native C++ and must run on a server that has the detector source,
-`my_model.xml`, a C++ compiler, and OpenCV installed. A published Flutter Web
-site cannot execute the detector on its hosting server automatically, and
-`127.0.0.1` in a browser means the visitor's own computer.
-
-Run the detector API on a reachable server behind an HTTPS reverse proxy. Set
-`TYNSAI_HOST=0.0.0.0` and restrict browser access to the deployed app origin, for
-example `TYNSAI_ALLOWED_ORIGINS=https://app.example.com`. Then build Flutter Web
-with the public API URL embedded:
+Build WASM before building Flutter Web. The generated
+`web/wasm/tyndall_detector.js`, `.wasm`, and `.data` files are static assets and
+must be included in the Vercel deployment. Build them locally and include those
+three files in the repository; Vercel only needs to run the Flutter Web build.
+No API URL, server process, or CORS allowlist is needed for TynsAI.
 
 ```sh
-flutter build web --release \
-	--dart-define=TYNSAI_API_URL=https://api.example.com/predict
+sh tool/build_tynsai_wasm.sh
+flutter build web --release
 ```
 
-Deploy `build/web` after the build. The browser page and API must both use HTTPS;
-the API must allow the page's origin through CORS. Keep `TYNSAI_API_URL` pointed
-at the public HTTPS endpoint, not `127.0.0.1`.
+Deploy `build/web` to Vercel. The prebuilt WASM assets are served with the Flutter
+site and execute inside each visitor's browser.
 
 ## Light Chaser data
 

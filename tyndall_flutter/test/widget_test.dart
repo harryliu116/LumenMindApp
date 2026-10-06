@@ -5,13 +5,10 @@
 // gestures. You can also use WidgetTester to find child widgets in the widget
 // tree, read text, and verify that the values of widget properties are correct.
 
-import 'dart:convert';
-
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:lumen_mind/light_chaser.dart';
 import 'package:lumen_mind/tyndall_app.dart';
-import 'package:lumen_mind/tyndall_detector_client.dart';
 
 void main() {
   testWidgets('shows LumenMind sessions and the TynsAI workflow', (
@@ -44,33 +41,6 @@ void main() {
     );
     expect(find.text('LightChaser'), findsNWidgets(2));
     expect(find.text('Chase the light.'), findsNothing);
-  });
-
-  test('preserves the detector output text exactly', () {
-    const output =
-        '\nPrediction Result\n'
-        'Predicted Mass Percentage: 0.58535%\n'
-        'Image-only prediction (no sensor data)\n';
-    expect(parseDetectorOutput(jsonEncode({'output': output})), output);
-  });
-
-  test('surfaces detector service errors', () {
-    expect(
-      () => parseDetectorOutput(
-        '{"error":"Detector unavailable."}',
-        statusCode: 500,
-      ),
-      throwsA(isA<DetectorApiException>()),
-    );
-  });
-
-  test('explains how to configure a published detector endpoint', () {
-    final message = detectorApiConnectionMessage(
-      'http://127.0.0.1:8765/predict',
-    );
-    expect(message, contains('public HTTPS /predict endpoint'));
-    expect(message, contains("each visitor’s own device"));
-    expect(message, contains('CORS'));
   });
 
   test('ranks humid near-saturation conditions above dry clear conditions', () {
