@@ -89,10 +89,10 @@ em++ -std=c++17 -O3 -DNDEBUG -fexceptions \
   -sMODULARIZE=1 \
   -sEXPORT_ES6=1 \
   -sEXPORT_NAME=createTynsaiModule \
-  -sENVIRONMENT=web \
+  -sENVIRONMENT=web,node \
   -sALLOW_MEMORY_GROWTH=1 \
   -sEXPORTED_FUNCTIONS=_malloc,_free,_tynsai_load_model,_tynsai_predict_image \
-  -sEXPORTED_RUNTIME_METHODS=ccall \
+  -sEXPORTED_RUNTIME_METHODS=ccall,HEAPU8 \
   -sDISABLE_EXCEPTION_CATCHING=0 \
   --preload-file "$WORKSPACE_DIR/my_model.xml@/my_model.xml" \
   -o "$WASM_DIR/tyndall_detector.js"

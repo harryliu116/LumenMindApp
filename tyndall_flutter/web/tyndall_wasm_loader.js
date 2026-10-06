@@ -13,15 +13,22 @@ window.lumenMindTynsAi = {
     const bytes = imageBytes instanceof Uint8Array
       ? imageBytes
       : new Uint8Array(imageBytes);
-    const output = module.ccall(
-      'tynsai_predict_image',
-      'string',
-      ['array', 'number'],
-      [bytes, bytes.length],
-    );
-    if (!output || !output.includes('Predicted Mass Percentage:')) {
-      throw new Error(output || 'The embedded detector returned no prediction.');
+    const imagePointer = module._malloc(bytes.byteLength);
+    if (!imagePointer) throw new Error('Not enough memory to process this image.');
+    try {
+      module.HEAPU8.set(bytes, imagePointer);
+      const output = module.ccall(
+        'tynsai_predict_image',
+        'string',
+        ['number', 'number'],
+        [imagePointer, bytes.byteLength],
+      );
+      if (!output || !output.includes('Predicted Mass Percentage:')) {
+        throw new Error(output || 'The embedded detector returned no prediction.');
+      }
+      return output;
+    } finally {
+      module._free(imagePointer);
     }
-    return output;
   },
 };
